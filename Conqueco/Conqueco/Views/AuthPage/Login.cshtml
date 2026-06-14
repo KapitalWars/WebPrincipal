@@ -2,7 +2,7 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-white">
+<div class="flex justify-center py-16">
 
     <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-purple-100 p-8">
 
@@ -27,6 +27,12 @@
                 Login
             </button>
 
+            <p class="text-center text-sm mt-4">
+                <a href="/AuthPage/ForgotPassword"
+                   class="text-primary hover:underline">
+                    Forgot password?
+                </a>
+            </p>
         </div>
 
         <p class="text-sm text-center text-gray-500 mt-4">
@@ -45,16 +51,17 @@
             password: document.getElementById("password").value
         };
 
+        console.log(dto);
+
         const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(dto)
         });
 
         if (res.ok) {
             const data = await res.json();
-
-            localStorage.setItem("token", data.token);
 
             window.location.href = "/";
         } else {

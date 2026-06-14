@@ -48,6 +48,14 @@
                     Privacy
                 </a>
 
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-area="" asp-controller="Admin" asp-action="Index"
+                       class="text-gray-700 hover:text-primary transition font-medium">
+                        Admin
+                    </a>
+                }
+
             </div>
 
             <!-- Right -->

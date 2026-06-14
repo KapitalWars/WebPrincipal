@@ -8,6 +8,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${CONNECTION_STRING}
+      Jwt__Key: ${JWT__Key}
+      Jwt__Issuer: ${JWT__Issuer}
+      Jwt__Audience: ${JWT__Audience}
+      Jwt__DurationInMinutes: ${JWT__DurationInMinutes}
     depends_on:
       - postgres
     ports:
@@ -25,6 +29,13 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: conqueco-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   postgres_data:

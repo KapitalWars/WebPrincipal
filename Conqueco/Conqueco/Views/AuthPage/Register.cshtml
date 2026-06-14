@@ -2,7 +2,7 @@
     ViewData["Title"] = "Register";
 }
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-white">
+<div class="flex justify-center py-16">
 
     <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-purple-100 p-8">
 
@@ -11,8 +11,10 @@
         </h2>
 
         <div class="space-y-4">
-            <input id="pseudo" placeholder="Pseudo"
-                   class="w-full px-4 py-3 rounded-xl border" />
+
+            <input id="pseudo"
+                   placeholder="Pseudo"
+                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-purple-100 outline-none" />
 
             <input id="email"
                    type="email"
@@ -24,8 +26,61 @@
                    placeholder="Password"
                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-purple-100 outline-none" />
 
-            <input type="file" id="avatar" accept="image/*"
-                   class="w-full px-4 py-3 rounded-xl border" />
+            <!-- Avatar input -->
+            <label class="block">
+
+                <span class="text-sm font-medium text-gray-700 mb-2 block">
+                    Avatar
+                </span>
+
+                <input type="file"
+                       id="avatar"
+                       accept="image/*"
+                       class="hidden" />
+
+                <label for="avatar"
+                       class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white cursor-pointer hover:border-primary hover:bg-purple-50 transition text-gray-600">
+
+                    <span>Select avatar</span>
+
+                </label>
+
+                <p id="fileName"
+                   class="mt-2 text-xs text-center text-gray-500">
+                    No file selected
+                </p>
+
+            </label>
+
+            <!-- Preview -->
+            <div class="flex flex-col items-center gap-4">
+
+                <div id="avatarContainer"
+                     class="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-200 shadow-md bg-gray-100 relative cursor-move">
+
+                    <img id="avatarPreview"
+                         class="absolute hidden select-none max-w-none"
+                         draggable="false" />
+
+                </div>
+
+                <div class="w-full">
+
+                    <label class="text-xs text-gray-500 block mb-1">
+                        Zoom
+                    </label>
+
+                    <input type="range"
+                           id="zoomSlider"
+                           min="1"
+                           max="4"
+                           step="0.05"
+                           value="1"
+                           class="w-full accent-violet-500" />
+
+                </div>
+
+            </div>
 
             <button onclick="register()"
                     class="w-full bg-primary text-white py-3 rounded-xl shadow-md hover:bg-primaryDark transition">
@@ -34,46 +89,154 @@
 
         </div>
 
-        <p class="text-sm text-center text-gray-500 mt-4">
-            Already have an account?
-            <a href="/Auth/Login" class="text-primary hover:underline">Login</a>
-        </p>
-
     </div>
+
 </div>
 
 <script>
+
+    let scale = 1;
+    let posX = 0;
+    let posY = 0;
+
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    let img = new Image();
+
+    const avatarInput = document.getElementById("avatar");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const zoomSlider = document.getElementById("zoomSlider");
+    const fileName = document.getElementById("fileName");
+    const container = document.getElementById("avatarContainer");
+
+    avatarInput.addEventListener("change", function () {
+
+        const file = this.files[0];
+        if (!file) return;
+
+        fileName.textContent = file.name;
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            img = new Image();
+            img.src = e.target.result;
+
+            img.onload = () => {
+
+                avatarPreview.src = img.src;
+                avatarPreview.classList.remove("hidden");
+
+                scale = 1;
+                zoomSlider.value = 1;
+
+                centerImage();
+                updateTransform();
+            };
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    function centerImage() {
+
+        const size = 128;
+
+        const ratio = Math.max(
+            size / img.width,
+            size / img.height
+        );
+
+        const w = img.width * ratio;
+        const h = img.height * ratio;
+
+        avatarPreview.style.width = w + "px";
+        avatarPreview.style.height = h + "px";
+
+        posX = (size - w) / 2;
+        posY = (size - h) / 2;
+    }
+
+    function updateTransform() {
+        avatarPreview.style.transform =
+            `translate(${posX}px, ${posY}px) scale(${scale})`;
+    }
+
+    zoomSlider.addEventListener("input", () => {
+        scale = parseFloat(zoomSlider.value);
+        updateTransform();
+    });
+
+    container.addEventListener("mousedown", (e) => {
+        dragging = true;
+        startX = e.clientX - posX;
+        startY = e.clientY - posY;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+
+        posX = e.clientX - startX;
+        posY = e.clientY - startY;
+
+        updateTransform();
+    });
+
+    document.addEventListener("mouseup", () => {
+        dragging = false;
+    });
+
+    async function exportAvatarToBase64() {
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 128;
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, 128, 128);
+
+        ctx.save();
+
+        ctx.translate(posX, posY);
+        ctx.scale(scale, scale);
+
+        ctx.drawImage(img, 0, 0);
+
+        ctx.restore();
+
+        return canvas.toDataURL("image/png").split(',')[1];
+    }
+
     async function register() {
 
-        const file = document.getElementById("avatar").files[0];
-
-        let avatarBase64 = null;
-        if (file) {
-            avatarBase64 = await toBase64(file);
-        }
+        const avatarBase64 = img.src
+            ? await exportAvatarToBase64()
+            : null;
 
         const dto = {
+            pseudo: document.getElementById("pseudo").value,
             email: document.getElementById("email").value,
             password: document.getElementById("password").value,
-            pseudo: document.getElementById("pseudo").value,
             avatarBase64: avatarBase64
         };
 
-        await fetch("/api/auth/register", {
+        const response = await fetch("/api/auth/register", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(dto)
         });
 
-        window.location.href = "/AuthPage/Login";
+        if (response.ok) {
+            window.location.href = "/AuthPage/Login";
+        } else {
+            alert("Error");
+        }
     }
 
-    function toBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
-        });
-    }
 </script>
