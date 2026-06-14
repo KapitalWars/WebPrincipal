@@ -4,44 +4,48 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-<ul class="navbar-nav">
+<div class="flex items-center gap-3">
+
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
-            <a class="nav-link text-dark"
-               asp-area="Identity"
+        <!-- USER INFO -->
+        <div class="flex items-center gap-3">
+
+            <a asp-area="Identity"
                asp-page="/Account/Manage/Index"
-               title="Manage">
-                Hello @User.Identity?.Name!
+               class="text-sm font-medium text-gray-700 hover:text-primary transition">
+                👤 @User.Identity?.Name
             </a>
-        </li>
-        <li class="nav-item">
-            <form class="form-inline"
-                  asp-area="Identity"
+
+            <!-- LOGOUT -->
+            <form asp-area="Identity"
                   asp-page="/Account/Logout"
                   asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+
                 <button type="submit"
-                        class="nav-link btn btn-link text-dark">
+                        class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
                     Logout
                 </button>
+
             </form>
-        </li>
+
+        </div>
     }
     else
     {
-        <li class="nav-item">
-            <a class="nav-link text-dark"
-               asp-area="Identity"
-               asp-page="/Account/Register">
-                Register
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-dark"
-               asp-area="Identity"
-               asp-page="/Account/Login">
-                Login
-            </a>
-        </li>
+        <!-- LOGIN -->
+        <a asp-controller="AuthPage"
+           asp-action="Login"
+           class="text-sm px-4 py-2 rounded-lg border border-purple-200 text-primary hover:bg-purple-50 transition">
+            Login
+        </a>
+
+        <!-- REGISTER (CTA principal) -->
+        <a asp-controller="AuthPage"
+           asp-action="Register"
+           class="text-sm px-4 py-2 rounded-lg bg-primary text-white shadow-md hover:bg-primaryDark hover:shadow-lg transition">
+            Register
+        </a>
     }
-</ul>
+
+</div>

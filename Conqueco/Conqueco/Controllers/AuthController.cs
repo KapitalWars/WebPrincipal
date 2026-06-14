@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Conqueco.DTOs.Auth;
 
-namespace Conqueco.Controllers
+namespace Conqueco.Controllers.Api
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -30,13 +30,28 @@ namespace Conqueco.Controllers
             var user = new ApplicationUser
             {
                 UserName = dto.Email,
-                Email = dto.Email
+                Email = dto.Email,
+                Pseudo = dto.Pseudo
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
+
+            // 🖼️ AVATAR SAVE (si fourni)
+            if (!string.IsNullOrEmpty(dto.AvatarBase64))
+            {
+                var fileName = $"{Guid.NewGuid()}.png";
+                var path = Path.Combine("wwwroot/avatars", fileName);
+
+                var bytes = Convert.FromBase64String(dto.AvatarBase64);
+
+                System.IO.File.WriteAllBytes(path, bytes);
+
+                user.AvatarUrl = "/avatars/" + fileName;
+                await _userManager.UpdateAsync(user);
+            }
 
             return Ok("User created");
         }
