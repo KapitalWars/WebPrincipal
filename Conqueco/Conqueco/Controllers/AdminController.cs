@@ -54,5 +54,25 @@ namespace Conqueco.Controllers
             await _userManager.DeleteAsync(user);
             return Ok();
         }
+
+        [HttpGet]
+        public IActionResult Announcements()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult CreateAnnouncement()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult EditAnnouncement(int id)
+        {
+            ViewBag.Id = id;
+
+            return View();
+        }
     }
 }

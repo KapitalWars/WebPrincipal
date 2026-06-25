@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "conqueco"
+    metrics_path: /metrics
+
+    static_configs:
+      - targets:
+          - conqueco:8080

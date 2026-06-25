@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Create Announcement";
+}
+
+<div class="max-w-3xl mx-auto py-10">
+
+    <div class="bg-white rounded-2xl shadow-lg border border-purple-100 p-8">
+
+        <h1 class="text-3xl font-bold text-primary mb-6">
+            Create Announcement
+        </h1>
+
+        <div class="space-y-5">
+
+            <!-- TITLE -->
+            <div>
+                <label class="text-sm font-medium text-gray-700">Title</label>
+                <input id="title"
+                       class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-purple-100 outline-none"
+                       placeholder="Announcement title" />
+            </div>
+
+            <!-- CONTENT -->
+            <div>
+                <label class="text-sm font-medium text-gray-700">Content</label>
+                <textarea id="content"
+                          rows="6"
+                          class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-purple-100 outline-none"
+                          placeholder="Write your announcement..."></textarea>
+            </div>
+
+            <!-- IMAGE -->
+            <div>
+                <label class="text-sm font-medium text-gray-700">Image</label>
+
+                <input type="file"
+                       id="image"
+                       accept="image/*"
+                       class="hidden" />
+
+                <label for="image"
+                       class="mt-2 flex items-center justify-center gap-2 px-4 py-3 border rounded-xl cursor-pointer hover:bg-purple-50 hover:border-primary transition">
+
+                    📷 Upload image
+                </label>
+
+                <p id="fileName" class="text-xs text-gray-500 mt-2"></p>
+
+                <img id="preview"
+                     class="mt-4 hidden w-full h-64 object-cover rounded-xl border" />
+            </div>
+
+            <!-- OPTIONS -->
+            <div class="flex gap-6">
+
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" id="isPinned" />
+                    <span>Pin announcement</span>
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" id="isPublished" checked />
+                    <span>Publish</span>
+                </label>
+
+            </div>
+
+            <!-- BUTTON -->
+            <button onclick="createAnnouncement()"
+                    class="w-full bg-primary text-white py-3 rounded-xl shadow hover:bg-primaryDark transition">
+                Create
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    let base64Image = null;
+
+    document.getElementById("image").addEventListener("change", async function (e) {
+
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        document.getElementById("fileName").innerText = file.name;
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            base64Image = event.target.result.split(",")[1];
+
+            const img = document.getElementById("preview");
+            img.src = event.target.result;
+            img.classList.remove("hidden");
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    async function createAnnouncement() {
+
+        const dto = {
+            title: document.getElementById("title").value,
+            content: document.getElementById("content").value,
+            imageBase64: base64Image,
+            isPinned: document.getElementById("isPinned").checked,
+            isPublished: document.getElementById("isPublished").checked
+        };
+
+        const res = await fetch("/api/announcement", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dto)
+        });
+
+        if (res.ok) {
+            window.location.href = "/Admin/Announcements";
+        } else {
+            const err = await res.text();
+            alert(err);
+        }
+    }
+
+</script>

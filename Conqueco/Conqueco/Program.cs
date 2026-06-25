@@ -1,12 +1,12 @@
 using Conqueco.Data;
 using Conqueco.Hubs;
 using Conqueco.Models;
+using Conqueco.Services.Announcement;
 using Conqueco.Services.Auth;
 using Conqueco.Services.Mail;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,11 +44,23 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddSignalR();
 
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddProcessInstrumentation()
+            .AddPrometheusExporter();
+    });
+
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 
 builder.Services.AddAuthorization();
 
@@ -90,5 +102,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     await Conqueco.Data.Seed.IdentitySeed.SeedAsync(services);
 }
+
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();
