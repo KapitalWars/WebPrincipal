@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="Conqueco/Conqueco.csproj" />
-  <Project Path="docker-compose.dcproj">
-    <Build />
-  </Project>
-</Solution>
